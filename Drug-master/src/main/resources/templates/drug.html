@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <title>Drugs Controller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .response {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Drugs Controller</h1>
+
+    <a href="main" class="button">Go to Main page</a>
+    <br><br>
+
+    <button class="button" onclick="getAllDrugs()">Get All Drugs</button>
+    <div id="getAllResponse" class="response"></div>
+    <br><br>
+
+    <label for="drugId">Drug ID:</label>
+    <input type="text" id="drugId" name="drugId">
+    <br><br>
+
+    <button class="button" onclick="getDrugById()">Get Drug by ID</button>
+    <div id="getByIdResponse" class="response"></div>
+    <br><br>
+
+    <label for="tradeName">Trade Name:</label>
+    <input type="text" id="tradeName" name="tradeName">
+    <br><br>
+
+    <label for="internationalName">International Name:</label>
+    <input type="text" id="internationalName" name="internationalName">
+    <br><br>
+
+    <label for="manufacturerId">Manufacturer ID:</label>
+    <input type="text" id="manufacturerId" name="manufacturerId">
+    <br><br>
+
+    <label for="measureUnitId">Measure Unit ID:</label>
+    <input type="text" id="measureUnitId" name="measureUnitId">
+    <br><br>
+
+    <label for="dose">Dose:</label>
+    <input type="text" id="dose" name="dose">
+    <br><br>
+
+    <label for="form">Form:</label>
+    <input type="text" id="form" name="form">
+    <br><br>
+
+    <button class="button" onclick="createDrug()">Create Drug</button>
+    <div id="createResponse" class="response"></div>
+    <br><br>
+
+    <button class="button" onclick="updateDrug()">Update Drug</button>
+    <div id="updateResponse" class="response"></div>
+    <br><br>
+
+    <button class="button" onclick="deleteDrug()">Delete Drug</button>
+    <div id="deleteResponse" class="response"></div>
+
+    <script>
+        function formatData(data) {
+            if (typeof data === 'object') {
+                let formattedData = '';
+                for (const key of data) {
+                    formattedData += `Лекарство ${key.id}: Торговое название - ${key.tradeName}, Международное`+
+                        ` название - ${key.internationalName}, Производитель - ${key.manufacturer.manufacturerName}, `+
+                        ` Ед. Измерения - ${key.measureUnits.measureUnitName}, Форма - ${key.form}, Доза - ${key.dose}\n`;
+                }
+                return formattedData;
+            } else {
+                return data.toString();
+            }
+        }
+
+        function displayResponse(responseElementId, data) {
+            const responseElement = document.getElementById(responseElementId);
+            responseElement.innerText = formatData(data);
+        }
+
+        function getAllDrugs() {
+            fetch('/drugs')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    displayResponse('getAllResponse', data);
+                })
+                .catch(error => console.error(error));
+        }
+
+        function getDrugById() {
+            const drugId = document.getElementById('drugId').value;
+
+            fetch(`/drugs/${drugId}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Drug not found.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('getByIdResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('getByIdResponse', error.message);
+                });
+        }
+
+        function createDrug() {
+            const tradeName = document.getElementById('tradeName').value;
+            const internationalName = document.getElementById('internationalName').value;
+            const dose = document.getElementById('dose').value;
+            const form = document.getElementById('form').value;
+            const manufacturerId = document.getElementById('manufacturerId').value;
+            const measureUnitId = document.getElementById('measureUnitId').value;
+            const drug = { tradeName: tradeName, internationalName: internationalName, manufacturerId: manufacturerId,
+            measureUnitId: measureUnitId, dose: dose, form: form};
+
+            fetch(`/drugs/create/${manufacturerId}/${measureUnitId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(drug)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to create drug.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('createResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('createResponse', error.message);
+                });
+        }
+
+        function updateDrug() {
+            const drugId = document.getElementById('drugId').value;
+            const tradeName = document.getElementById('tradeName').value;
+            const internationalName = document.getElementById('internationalName').value;
+            const dose = document.getElementById('dose').value;
+            const form = document.getElementById('form').value;
+            const manufacturerId = document.getElementById('manufacturerId').value;
+            const measureUnitId = document.getElementById('measureUnitId').value;
+            const drug = { drugId: drugId, tradeName: tradeName, internationalName: internationalName, manufacturerId: manufacturerId,
+                measureUnitId: measureUnitId, dose: dose, form: form};
+
+            fetch(`/drugs/${drugId}/${manufacturerId}/${measureUnitId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(drug)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to update drug.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('updateResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('updateResponse', error.message);
+                });
+        }
+
+        function deleteDrug() {
+            const drugId = document.getElementById('drugId').value;
+
+            fetch(`/drugs/${drugId}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Drug deleted successfully.');
+                        displayResponse('deleteResponse', 'Drug deleted successfully.');
+                    } else {
+                        throw new Error('Drug not found.');
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('deleteResponse', error.message);
+                });
+        }
+    </script>
+</div>
+</body>
+</html>

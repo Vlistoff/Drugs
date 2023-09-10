@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <title>Producing country Controller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .response {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Producing country Controller</h1>
+
+    <a href="main" class="button">Go to Main page</a>
+    <br><br>
+
+    <button class="button" onclick="getAllProducingCountry()">Get All Producing country</button>
+    <div id="getAllResponse" class="response"></div>
+    <br><br>
+
+    <label for="producingCountryId">ProducingCountry ID:</label>
+    <input type="text" id="producingCountryId" name="producingCountryId">
+    <br><br>
+
+    <button class="button" onclick="getProducingCountryById()">Get Producing country by ID</button>
+    <div id="getByIdResponse" class="response"></div>
+    <br><br>
+
+    <label for="producingCountryName">Producing country Name:</label>
+    <input type="text" id="producingCountryName" name="producingCountryName">
+    <br><br>
+
+    <button class="button" onclick="createProducingCountry()">Create Producing country</button>
+    <div id="createResponse" class="response"></div>
+    <br><br>
+
+    <button class="button" onclick="updateProducingCountry()">Update Producing country</button>
+    <div id="updateResponse" class="response"></div>
+    <br><br>
+
+    <button class="button" onclick="deleteProducingCountry()">Delete Producing country</button>
+    <div id="deleteResponse" class="response"></div>
+
+    <script>
+        function formatData(data) {
+            if (typeof data === 'object') {
+                let formattedData = '';
+                for (const key of data) {
+                    formattedData += `Страна ${key.producingCountryName}: id = ${key.id}\n`;
+                }
+                return formattedData;
+            } else {
+                return data.toString();
+            }
+        }
+
+        function displayResponse(responseElementId, data) {
+            const responseElement = document.getElementById(responseElementId);
+            responseElement.innerText = formatData(data);
+        }
+
+        function getAllProducingCountry() {
+            fetch('/producing-country')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    displayResponse('getAllResponse', data);
+                })
+                .catch(error => console.error(error));
+        }
+
+        function getProducingCountryById() {
+            const producingCountryId = document.getElementById('producingCountryId').value;
+
+            fetch(`/producing-country/${producingCountryId}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Producing country not found.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('getByIdResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('getByIdResponse', error.message);
+                });
+        }
+
+        function createProducingCountry() {
+            const producingCountryName = document.getElementById('producingCountryName').value;
+            const producingCountry = { producingCountryName: producingCountryName };
+
+            fetch('/producing-country/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(producingCountry)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to create producing country.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('createResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('createResponse', error.message);
+                });
+        }
+
+        function updateProducingCountry() {
+            const producingCountryId = document.getElementById('producingCountryId').value;
+            const producingCountryName = document.getElementById('producingCountryName').value;
+            const producingCountry = { id: producingCountryId, producingCountryName: producingCountryName };
+
+            fetch(`/producing-country/${producingCountryId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(producingCountry)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to update producing country.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('updateResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('updateResponse', error.message);
+                });
+        }
+
+        function deleteProducingCountry() {
+            const producingCountryId = document.getElementById('producingCountryId').value;
+
+            fetch(`/producing-country/${producingCountryId}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Producing country deleted successfully.');
+                        displayResponse('deleteResponse', 'Producing country deleted successfully.');
+                    } else {
+                        throw new Error('Producing country not found.');
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('deleteResponse', error.message);
+                });
+        }
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <title>Streets Controller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .response {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Streets Controller</h1>
+
+    <a href="main" class="button">Go to Main page</a>
+    <br><br>
+
+    <button class="button" onclick="getAllStreets()">Get All Streets</button>
+    <div id="getAllResponse" class="response"></div>
+    <br><br>
+
+    <label for="streetId">Street ID:</label>
+    <input type="text" id="streetId" name="streetId">
+    <br><br>
+
+    <button class="button" onclick="getStreetById()">Get Street by ID</button>
+    <div id="getByIdResponse" class="response"></div>
+    <br><br>
+
+    <label for="streetName">Street Name:</label>
+    <input type="text" id="streetName" name="streetName">
+    <br><br>
+
+    <label for="cityId">City ID:</label>
+    <input type="text" id="cityId" name="cityId">
+    <br><br>
+
+    <button class="button" onclick="createStreet()">Create Street</button>
+    <div id="createResponse" class="response"></div>
+    <br><br>
+
+    <button class="button" onclick="updateStreet()">Update Street</button>
+    <div id="updateResponse" class="response"></div>
+    <br><br>
+
+    <button class="button" onclick="deleteStreet()">Delete Street</button>
+    <div id="deleteResponse" class="response"></div>
+
+    <script>
+        function formatData(data) {
+            if (typeof data === 'object') {
+                let formattedData = '';
+                for (const key of data) {
+                    formattedData += `Улица ${key.streetName}: id = ${key.id}, Название города = ${key.cities.cityName} \n`;
+                }
+                return formattedData;
+            } else {
+                return data.toString();
+            }
+        }
+
+        function displayResponse(responseElementId, data) {
+            const responseElement = document.getElementById(responseElementId);
+            responseElement.innerText = formatData(data);
+        }
+
+        function getAllStreets() {
+            fetch('/streets')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    displayResponse('getAllResponse', data);
+                })
+                .catch(error => console.error(error));
+        }
+
+        function getStreetById() {
+            const streetId = document.getElementById('streetId').value;
+
+            fetch(`/streets/${streetId}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Street not found.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('getByIdResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('getByIdResponse', error.message);
+                });
+        }
+
+        function createStreet() {
+            const streetName = document.getElementById('streetName').value;
+            const cityId = document.getElementById('cityId').value;
+            const street = { streetName: streetName, cityId: cityId};
+
+            fetch(`/streets/create/${cityId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(street)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to create street.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('createResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('createResponse', error.message);
+                });
+        }
+
+        function updateStreet() {
+            const streetId = document.getElementById('streetId').value;
+            const streetName = document.getElementById('streetName').value;
+            const cityId = document.getElementById('cityId').value;
+            const street = { id: streetId, streetName: streetName, cityId: cityId};
+
+            fetch(`/streets/${streetId}/${cityId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(street)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to update street.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('updateResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('updateResponse', error.message);
+                });
+        }
+
+        function deleteStreet() {
+            const streetId = document.getElementById('streetId').value;
+
+            fetch(`/streets/${streetId}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Street deleted successfully.');
+                        displayResponse('deleteResponse', 'Street deleted successfully.');
+                    } else {
+                        throw new Error('Street not found.');
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('deleteResponse', error.message);
+                });
+        }
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <title>Cities Controller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .response {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Cities Controller</h1>
+
+    <a href="main" class="button">Go to Main page</a>
+    <br><br>
+
+    <button class="button" onclick="getAllCities()">Get All Cities</button>
+    <div id="getAllResponse" class="response"></div>
+    <br><br>
+
+    <label for="cityId">City ID:</label>
+    <input type="text" id="cityId" name="cityId">
+    <br><br>
+
+    <button class="button" onclick="getCityById()">Get City by ID</button>
+    <div id="getByIdResponse" class="response"></div>
+    <br><br>
+
+    <label for="cityName">City Name:</label>
+    <input type="text" id="cityName" name="cityName">
+    <br><br>
+
+    <button class="button" onclick="createCity()">Create City</button>
+    <div id="createResponse" class="response"></div>
+    <br><br>
+
+    <button class="button" onclick="updateCity()">Update City</button>
+    <div id="updateResponse" class="response"></div>
+    <br><br>
+
+    <button class="button" onclick="deleteCity()">Delete City</button>
+    <div id="deleteResponse" class="response"></div>
+
+    <script>
+        function formatData(data) {
+            if (typeof data === 'object') {
+                let formattedData = '';
+                for (const key of data) {
+                    formattedData += `Город ${key.cityName}: id = ${key.id}\n`;
+                }
+                return formattedData;
+            } else {
+                return data.toString();
+            }
+        }
+
+        function displayResponse(responseElementId, data) {
+            const responseElement = document.getElementById(responseElementId);
+            responseElement.innerText = formatData(data);
+        }
+
+        function getAllCities() {
+            fetch('/cities')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    displayResponse('getAllResponse', data);
+                })
+                .catch(error => console.error(error));
+        }
+
+        function getCityById() {
+            const cityId = document.getElementById('cityId').value;
+
+            fetch(`/cities/${cityId}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('City not found.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('getByIdResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('getByIdResponse', error.message);
+                });
+        }
+
+        function createCity() {
+            const cityName = document.getElementById('cityName').value;
+            console.log(cityName)
+            const city = { cityName: cityName };
+
+            fetch('/cities/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(city)
+            })
+                .then(response => {
+                    console.log(response)
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to create city.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('createResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('createResponse', error.message);
+                });
+        }
+
+        function updateCity() {
+            const cityId = document.getElementById('cityId').value;
+            const cityName = document.getElementById('cityName').value;
+            const city = { id: cityId, cityName: cityName };
+
+            fetch(`/cities/${cityId}`, {
+            method: 'PUT',
+                headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(city)
+        })
+        .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to update city.');
+                }
+            })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('updateResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('updateResponse', error.message);
+                });
+        }
+
+        function deleteCity() {
+            const cityId = document.getElementById('cityId').value;
+
+            fetch(`/cities/${cityId}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('City deleted successfully.');
+                        displayResponse('deleteResponse', 'City deleted successfully.');
+                    } else {
+                        throw new Error('City not found.');
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('deleteResponse', error.message);
+                });
+        }
+    </script>
+</div>
+</body>
+</html>

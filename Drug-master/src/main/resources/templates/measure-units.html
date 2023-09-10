@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <title>Measure Units Controller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .response {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Measure Units Controller</h1>
+
+    <a href="main" class="button">Go to Main page</a>
+    <br><br>
+
+    <button class="button" onclick="getAllMeasureUnits()">Get All Measure Units</button>
+    <div id="getAllResponse" class="response"></div>
+    <br><br>
+
+    <label for="measureUnitsId">Measure units ID:</label>
+    <input type="text" id="measureUnitsId" name="measureUnitsId">
+    <br><br>
+
+    <button class="button" onclick="getMeasureUnitsById()">Get Measure units by ID</button>
+    <div id="getByIdResponse" class="response"></div>
+    <br><br>
+
+    <label for="measureUnitsName">Measure units Name:</label>
+    <input type="text" id="measureUnitsName" name="measureUnitsName">
+    <br><br>
+
+    <button class="button" onclick="createMeasureUnits()">Create Measure units</button>
+    <div id="createResponse" class="response"></div>
+    <br><br>
+
+    <button class="button" onclick="updateMeasureUnits()">Update Measure units</button>
+    <div id="updateResponse" class="response"></div>
+    <br><br>
+
+    <button class="button" onclick="deleteMeasureUnits()">Delete Measure units</button>
+    <div id="deleteResponse" class="response"></div>
+
+    <script>
+        function formatData(data) {
+            if (typeof data === 'object') {
+                let formattedData = '';
+                for (const key of data) {
+                    formattedData += `Единица измерения - ${key.measureUnitName}: id = ${key.id}\n`;
+                }
+                return formattedData;
+            } else {
+                return data.toString();
+            }
+        }
+
+        function displayResponse(responseElementId, data) {
+            const responseElement = document.getElementById(responseElementId);
+            responseElement.innerText = formatData(data);
+        }
+
+        function getAllMeasureUnits() {
+            fetch('/measure-units')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    displayResponse('getAllResponse', data);
+                })
+                .catch(error => console.error(error));
+        }
+
+        function getMeasureUnitsById() {
+            const measureUnitsId = document.getElementById('measureUnitsId').value;
+
+            fetch(`/measure-units/${measureUnitsId}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Measure units not found.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('getByIdResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('getByIdResponse', error.message);
+                });
+        }
+
+        function createMeasureUnits() {
+            const measureUnitsName = document.getElementById('measureUnitsName').value;
+            console.log(measureUnitsName)
+            const measureUnits = { measureUnitName: measureUnitsName };
+
+            fetch('/measure-units/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(measureUnits)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to create measure units.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('createResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('createResponse', error.message);
+                });
+        }
+
+        function updateMeasureUnits() {
+            const measureUnitsId = document.getElementById('measureUnitsId').value;
+            const measureUnitsName = document.getElementById('measureUnitsName').value;
+            const measureUnits = { id: measureUnitsId, measureUnitsName: measureUnitsName };
+
+            fetch(`/measure-units/${measureUnitsId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(measureUnits)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to update measure units.');
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    displayResponse('updateResponse', [data]);
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('updateResponse', error.message);
+                });
+        }
+
+        function deleteMeasureUnits() {
+            const measureUnitsId = document.getElementById('measureUnitsId').value;
+
+            fetch(`/measure-units/${measureUnitsId}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Measure units deleted successfully.');
+                        displayResponse('deleteResponse', 'Measure units deleted successfully.');
+                    } else {
+                        throw new Error('Measure units not found.');
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayResponse('deleteResponse', error.message);
+                });
+        }
+    </script>
+</div>
+</body>
+</html>
